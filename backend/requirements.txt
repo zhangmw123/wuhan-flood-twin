@@ -1,0 +1,11 @@
+fastapi>=0.110
+uvicorn[standard]>=0.27
+pydantic>=2.6
+# 生产可选：PostGIS 直连（SPATIAL_ENGINE=postgis 时使用）
+sqlalchemy[asyncio]>=2.0
+asyncpg>=0.29
+geoalchemy2>=0.14
+# 数据入库脚本使用
+# geopandas>=0.14
+# psycopg2-binary>=2.9
+orjson>=3.9        # 大要素集 JSON 序列化加速（未装则自动回退标准编码器）

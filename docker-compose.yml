@@ -1,0 +1,84 @@
+version: '3.9'
+
+services:
+  # 1. PostGIS 空间数据库
+  postgis:
+    image: postgis/postgis:15-3.4
+    container_name: wuhan_flood_postgis
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres123}
+      POSTGRES_DB: wuhan_flood_gis
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./backend/sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d wuhan_flood_gis"]
+      interval: 5s
+      timeout: 5s
+      retries: 8
+
+  # 2. Martin 矢量瓦片服务：自动扫描 PostGIS 空间表，发布 MVT
+  martin:
+    image: ghcr.io/maplibre/martin:v0.13.0
+    container_name: wuhan_flood_martin
+    restart: always
+    depends_on:
+      postgis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD:-postgres123}@postgis:5432/wuhan_flood_gis
+    ports:
+      - "3000:3000"
+    command: --keep-alive 75 --webui enable-for-all
+
+  # 3. Redis：Open-Meteo 天气缓存与 SSE 广播
+  redis:
+    image: redis:7-alpine
+    container_name: wuhan_flood_redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+  # 4. FastAPI 空间分析后端
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: wuhan_flood_backend
+    restart: always
+    depends_on:
+      postgis:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      SPATIAL_ENGINE: ${SPATIAL_ENGINE:-local}
+      DATABASE_URL: postgresql+asyncpg://postgres:${POSTGRES_PASSWORD:-postgres123}@postgis:5432/wuhan_flood_gis
+      REDIS_URL: redis://redis:6379/0
+      TILE_SOURCE: ${TILE_SOURCE:-local}
+      MARTIN_URL: http://martin:3000
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_BASE_URL: ${LLM_BASE_URL:-https://api.deepseek.com/v1}
+      LLM_MODEL: ${LLM_MODEL:-deepseek-chat}
+    ports:
+      - "8000:8000"
+
+  # 5. Nginx 托管前端并反向代理 API
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: wuhan_flood_frontend
+    restart: always
+    depends_on:
+      - backend
+      - martin
+    ports:
+      - "80:80"
+
+volumes:
+  pgdata:
