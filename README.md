@@ -1,10 +1,20 @@
 # 江汉流域防汛抗旱与武汉城市内涝二三维孪生调度平台
 
+<div align="center">
+
+![Vue](https://img.shields.io/badge/Vue-3.5-42b883) ![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178c6) ![MapLibre](https://img.shields.io/badge/MapLibre%20GL-4.7-e31e54) ![ECharts](https://img.shields.io/badge/ECharts-5.5-aa344d) ![FastAPI](https://img.shields.io/badge/FastAPI-0.1xx-009688) ![Python](https://img.shields.io/badge/Python-3.13-3776ab) ![PostGIS](https://img.shields.io/badge/PostGIS-可选-3.x-4479a1)
+
+**🎬 [观看 3 分钟演示视频（1080p，含字幕）](docs/demo/wuhan-flood-twin-demo-1080p.mp4)**
+
+[![演示视频封面](docs/screenshots/01-总体态势.png)](docs/demo/wuhan-flood-twin-demo-1080p.mp4)
+
+</div>
+
 > 在《智慧文旅·武汉》原型（`end5`）基础上全面重构的防汛应急方向 WebGIS 工程。
 > 双空间引擎（PostGIS / 纯 Python，可切换）+ 空间分片按需加载 + 实时水雨情 + 内涝推演 + 避险路径 + AI 调度 Copilot。
 > 默认 `local` 模式无需 Docker 即可完整运行；生产模式提供 PostGIS + Martin MVT 编排。
 
-![总体态势](docs/screenshots/01-总体态势.png)
+![灾情推演](docs/screenshots/02-灾情推演.png)
 
 ---
 
